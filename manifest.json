@@ -1,0 +1,33 @@
+{
+  "name": "Gibira Grocery List",
+  "short_name": "Gibira",
+  "id": "/GibiraGroceryList/",
+  "start_url": "/GibiraGroceryList/",
+  "scope": "/GibiraGroceryList/",
+  "display": "standalone",
+  "background_color": "#f8f9fa",
+  "theme_color": "#2e7d32",
+  "icons": [
+    {
+      "src": "/GibiraGroceryList/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/GibiraGroceryList/screenshot-mobile.png",
+      "sizes": "614x1362",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Dashboard view on Mobile"
+    },
+    {
+      "src": "/GibiraGroceryList/screenshot-desktop.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "List view on Desktop"
+    }
+  ]
+}

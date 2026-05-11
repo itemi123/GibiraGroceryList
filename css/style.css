@@ -1,0 +1,174 @@
+/* style.css */
+body {
+    background-color: #f8f9fa; /* Matches Bootstrap light bg */
+	-webkit-user-select: none; /* Safari */
+    user-select: none;         /* Standard */
+}
+
+/* Make checked items look clearly inactive */
+
+.list-group-item:active {
+    cursor: grabbing;
+}
+
+.dragging {
+    opacity: 0.3;
+    border: 2px dashed #2e7d32 !important;
+}
+
+.editable-text {
+    -webkit-user-select: text; /* Allow selection only for editing */
+    user-select: text;
+}
+
+/* Inline Editing focus vibe */
+.editable-text:focus {
+    outline: none;
+    background-color: rgba(46, 125, 50, 0.05);
+    border-bottom: 2px solid #2e7d32;
+    padding: 0 4px;
+}
+
+/* Remove default link styling from our delete 'X' */
+.btn-link:hover {
+    color: #a52828 !important;
+    transform: scale(1.2);
+    transition: transform 0.1s;
+}
+
+#mainList {
+    transition: all 0.3s ease;
+}
+
+.list-group-item {
+    transition: background-color 0.2s, opacity 0.2s;
+}
+
+/* Dashboard Card Styling */
+.list-card {
+    cursor: pointer;
+    transition: transform 0.1s ease;
+}
+.list-card:active {
+    transform: scale(0.98);
+}
+.list-card h5 {
+    font-weight: 600;
+}
+
+/* Dark Mode Variables */
+:root {
+    --bg-color: #f8f9fa;
+    --card-bg: #ffffff;
+    --text-main: #212529;
+    --text-secondary: #6c757d; /* Standard muted text */
+    --text-crossed: #adb5bd;   /* Light gray for crossed items */
+    --border-color: #dee2e6;
+}
+
+[data-theme="dark"] {
+    --bg-color: #121212;
+    --card-bg: #1e1e1e;
+    --text-main: #f8f9fa;
+    --text-secondary: #aaaaaa; /* Lighter gray for visibility on dark */
+    --text-crossed: #646464;   /* Darker gray for crossed items */
+    --border-color: #333333;
+}
+
+/* Apply variables to the body and cards */
+body { 
+    background-color: var(--bg-color) !important; 
+    color: var(--text-main); 
+    transition: background 0.3s ease; 
+}
+
+.card { 
+    background-color: var(--card-bg) !important; 
+    color: var(--text-main); 
+    border-color: var(--border-color) !important; 
+}
+
+/* Fix for the Date and Item count visibility */
+.text-muted { 
+    color: var(--text-secondary) !important; 
+}
+
+/* Fix for the List Item text and borders */
+.list-group-item { 
+	cursor: grab;
+	background-color: transparent !important;
+    color: var(--text-main); 
+    border-color: var(--border-color) !important;
+}
+
+/* Fix for Crossed-out (done) items */
+.text-decoration-line-through.text-muted { 
+    color: var(--text-crossed) !important; 
+    opacity: 0.6;
+}
+
+/* General overrides for text-dark utility class */
+.text-dark { 
+    color: var(--text-main) !important; 
+}
+
+/* Ensure inputs remain readable */
+input.form-control { 
+    background-color: var(--card-bg) !important; 
+    color: var(--text-main) !important; 
+    border-color: var(--border-color) !important; 
+}
+#themeToggle img {
+    transition: transform 0.2s ease, filter 0.3s ease;
+}
+
+#themeToggle:active img {
+    transform: scale(0.85); /* Gives a nice "click" feedback on mobile */
+}
+
+/* Ensure the button doesn't have an ugly hover background in dark mode */
+[data-theme="dark"] .btn-outline-secondary:hover {
+    background-color: transparent;
+    color: var(--text-main);
+}
+
+/* Match theme icon color and size to the language button text */
+#themeToggle, #langToggle {
+    min-width: 42px;
+    height: 38px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem; /* Standard Bootstrap btn-sm font size */
+}
+
+.icon-bulb {
+    width: 20px;
+    height: 20px;
+    background-color: currentColor; /* MAGIC: This makes the icon match the text color */
+    display: inline-block;
+    /* This uses the SVG as a mask */
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+
+/* Define the two states using your local files */
+.bulb-off {
+    -webkit-mask-image: url('../lightbulb-off.svg');
+    mask-image: url('../lightbulb-off.svg');
+}
+
+.bulb-on {
+    -webkit-mask-image: url('../lightbulb.svg');
+    mask-image: url('../lightbulb.svg');
+}
+
+/* Optional: Slight glow for the 'On' bulb in dark mode */
+[data-theme="dark"] .bulb-on {
+    filter: drop-shadow(0 0 2px currentColor);
+}
