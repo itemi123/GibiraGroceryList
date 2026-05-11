@@ -1,4 +1,5 @@
 /* app.js */
+window.GIBIRA_VERSION = "v1.0.5";
 const listContainer = document.getElementById('mainList');
 const inputField = document.getElementById('groceryInput');
 const searchInput = document.getElementById('searchInput');
@@ -71,7 +72,7 @@ function render() {
     clearAllBtn.innerText = i18n.clearAll;
     clearAllListsBtn.innerText = i18n.deleteAllLists;
     updateThemeIcon();
-
+	document.getElementById('version-display').innerText = window.GIBIRA_VERSION;
     if (!currentListId) {
         renderDashboard();
     } else {
@@ -85,6 +86,7 @@ function render() {
 
 // --- 4. View: Dashboard ---
 function renderDashboard() {
+	
 	document.getElementById('activeListHeader').style.display = 'none'; // Hide title
     document.querySelector('.input-group').style.display = 'none'; 
     if (searchInput) searchInput.parentElement.style.display = 'none'; 
@@ -104,28 +106,33 @@ function renderDashboard() {
 
     const sortedDashboard = [...allLists].sort((a, b) => b.id - a.id);
     sortedDashboard.forEach(list => {
-        const div = document.createElement('div');
-        div.className = 'card mb-2 shadow-sm border-0 list-card';
-        div.innerHTML = `
-            <div class="card-body d-flex justify-content-between align-items-center" onclick="openList(${list.id})">
-                <div class="flex-grow-1">
-                    <div class="d-flex align-items-center">
-                        <h5 class="mb-1">${list.title}</h5>
-                        <button class="btn btn-link btn-sm text-secondary p-0 ms-2 text-decoration-none" 
-                                onclick="window.showNamePrompt('edit', ${list.id}, '${list.title.replace(/'/g, "\\'")}'); event.stopPropagation();">
-                                ✏️
-                        </button>
-                    </div>
-                    <div class="text-muted small">
-                        <span class="me-2">📅 ${list.createdAt || i18n.na}</span>
-                        <span>📦 ${list.items.length} ${i18n.itemsCount}</span>
-                    </div>
-                </div>
-                <button class="btn btn-link text-danger p-0 text-decoration-none" onclick="deleteList(event, ${list.id})">✕</button>
-            </div>
-        `;
-        listContainer.appendChild(div);
-    });
+    const div = document.createElement('div');
+    div.className = 'card mb-2 shadow-sm border-0 list-card';
+    // Use an empty h5 with a specific class for the title
+    div.innerHTML = `
+		<div class="card-body d-flex justify-content-between align-items-start" onclick="openList(${list.id})">
+			<div class="flex-grow-1 pe-3">
+				<div class="list-title-wrapper">
+					<h5 class="mb-1 d-inline list-title-display"></h5>
+					<button class="btn btn-link btn-sm text-secondary p-0 ms-1 edit-btn-inline" 
+							onclick="window.showNamePrompt('edit', ${list.id}); event.stopPropagation();">
+							✏️
+					</button>
+				</div>
+				<div class="text-muted small">
+					<span class="me-2">📅 ${list.createdAt || i18n.na}</span>
+					<span>📦 ${list.items.length} ${i18n.itemsCount}</span>
+				</div>
+			</div>
+			<button class="btn btn-link text-danger p-0 text-decoration-none fs-5" onclick="deleteList(event, ${list.id})">✕</button>
+		</div>
+	`;
+    
+    // Set title as plain text
+    div.querySelector('.list-title-display').textContent = list.title;
+    
+    listContainer.appendChild(div);
+});
 }
 
 // --- 5. View: Active List ---
@@ -172,16 +179,19 @@ function renderActiveList() {
         li.dataset.index = actualIndex;
         
         li.innerHTML = `
-            <div class="d-flex align-items-center flex-grow-1">
-                <input type="checkbox" class="form-check-input me-3 border-success" 
-                       ${item.done ? 'checked' : ''} onchange="toggleItem(${actualIndex})">
-                <span class="editable-text fs-2 ${item.done ? 'text-decoration-line-through text-muted' : ''}" 
-                      contenteditable="true" 
-                      onblur="editItem(${actualIndex}, this.innerText)"
-                      spellcheck="false">${item.name}</span>
-            </div>
-            <button class="btn btn-link text-danger p-0 ms-2 text-decoration-none" onclick="removeItem(${actualIndex})">✕</button>
-        `;
+			<div class="d-flex align-items-center flex-grow-1">
+				<input type="checkbox" class="form-check-input me-3 border-success" 
+					   ${item.done ? 'checked' : ''} onchange="toggleItem(${actualIndex})">
+				<span class="editable-text fs-2 ${item.done ? 'text-decoration-line-through text-muted' : ''}" 
+					  contenteditable="true" 
+					  onblur="editItem(${actualIndex}, this.innerText)"
+					  spellcheck="false"></span>
+			</div>
+			<button class="btn btn-link text-danger p-0 ms-2 text-decoration-none" onclick="removeItem(${actualIndex})">✕</button>
+		`;
+
+		// Set item name as plain text
+		li.querySelector('.editable-text').textContent = item.name;		
 
         li.addEventListener('dragstart', handleDragStart);
         li.addEventListener('dragover', handleDragOver);
@@ -193,11 +203,20 @@ function renderActiveList() {
 }
 
 // --- 6. Custom Modal Logic ---
-window.showNamePrompt = (action, id = null, oldName = '') => {
+// Updated showNamePrompt function
+window.showNamePrompt = (action, id = null) => {
     modalAction = action;
     editingListId = id;
+    
+    let oldName = '';
+    if (action === 'edit' && id !== null) {
+        // Look up the name by ID directly from your state
+        const list = allLists.find(l => l.id == id);
+        if (list) oldName = list.title;
+    }
+
     modalTitle.innerText = action === 'edit' ? i18n.editListName || "Edit List Name" : i18n.createNewList;
-    modalInput.value = oldName;
+    modalInput.value = oldName; // modalInput.value is inherently XSS-safe
     nameModal.show();
     setTimeout(() => modalInput.focus(), 500);
 };
@@ -326,13 +345,166 @@ clearAllBtn.onclick = () => {
     }
 };
 
+window.exportData = () => {
+    // 1. Prepare the data
+    const dataStr = JSON.stringify(allLists, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    
+    // 2. Generate detailed timestamp: YYYY-MM-DD_HH-mm
+    const now = new Date();
+    const datePart = now.toISOString().split('T')[0]; // 2026-05-11
+    const timePart = now.getHours().toString().padStart(2, '0') + '-' + 
+                     now.getMinutes().toString().padStart(2, '0');
+    
+    const filename = `gibira_backup_${datePart}_${timePart}.json`;
+
+    // 3. Create a temporary download link
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    
+    // 4. Trigger download and cleanup
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+};
+
+window.importData = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (file.size > 1024 * 1024) { 
+        alert("File is too large. Backup must be under 1MB.");
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const rawData = JSON.parse(e.target.result);
+            if (!Array.isArray(rawData)) {
+                alert("Invalid format: Backup must be a list array.");
+                return;
+            }
+
+            // --- DEEP VALIDATION ---
+            const incomingLists = rawData.filter(list => {
+                // 1. Basic List Structure Check
+                const hasBasicFields = list.hasOwnProperty('id') && 
+                                     list.hasOwnProperty('title') && 
+                                     Array.isArray(list.items);
+                
+                if (!hasBasicFields) return false;
+
+                // 2. Internal Items Integrity Check
+                // Ensure every item is an object with a name string and done boolean
+                const itemsAreValid = list.items.every(item => 
+                    item && 
+                    typeof item === 'object' && 
+                    typeof item.name === 'string' &&
+                    item.hasOwnProperty('done')
+                );
+
+                return itemsAreValid;
+            });
+
+            if (incomingLists.length === 0) {
+                alert("No valid grocery lists found. File may be corrupted or in the wrong format.");
+                return;
+            }
+
+            const message = `Importing ${incomingLists.length} valid list(s). Update existing IDs and add new ones?`;
+            
+            if (confirm(message)) {
+                incomingLists.forEach(incoming => {
+                    const existingIndex = allLists.findIndex(l => l.id === incoming.id);
+
+                    // Re-construct the object to sanitize fields and apply defaults
+                    const sanitizedList = {
+                        id: incoming.id,
+                        title: incoming.title,
+                        items: incoming.items.map(item => ({
+                            name: item.name,
+                            done: !!item.done // Force to boolean
+                        })),
+                        createdAt: incoming.createdAt || new Date().toLocaleString(),
+                        isReversed: !!incoming.isReversed
+                    };
+
+                    if (existingIndex !== -1) {
+                        allLists[existingIndex] = sanitizedList;
+                    } else {
+                        allLists.push(sanitizedList);
+                    }
+                });
+
+                render();
+                event.target.value = ''; 
+                alert("Import successful!");
+            }
+        } catch (err) {
+            console.error("Import error:", err);
+            alert("Error: The file is not valid JSON.");
+        }
+    };
+    reader.readAsText(file);
+};
+
 render();
 
 /* app.js registration */
+
+
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-            .then(reg => console.log('Gibira PWA: Offline mode active.'))
-            .catch(err => console.log('PWA Error:', err));
+        // Register but don't let the browser auto-update in the background
+        navigator.serviceWorker.register('sw.js', { updateViaCache: 'all' })
+            .then(reg => {
+                console.log('Gibira PWA: Locked version active.');
+                // We store the registration object globally to trigger it later
+                window.swRegistration = reg;
+            });
     });
 }
+
+window.checkForUpdatesManually = () => {
+    if (!navigator.onLine) {
+        alert("You are offline. Please connect to Wi-Fi to check for updates.");
+        return;
+    }
+
+    if (window.swRegistration) {
+        console.log("Gibira: Manual handshake initiated...");
+        
+        window.swRegistration.update().then(reg => {
+            // Check if there is already a version waiting or if a new one was just found
+            if (reg.waiting || reg.installing) {
+                alert("A new version is ready! Please close all tabs of this app and restart to apply changes.");
+            } else {
+                // We listen for the 'updatefound' event which triggers if the update() found something new
+                reg.onupdatefound = () => {
+                    const newWorker = reg.installing;
+                    newWorker.onstatechange = () => {
+                        if (newWorker.state === 'installed') {
+                            alert("Update downloaded! Close the app and reopen it to see changes.");
+                        }
+                    };
+                };
+                
+                // If nothing was found after a few seconds
+                setTimeout(() => {
+                    if (!reg.waiting && !reg.installing) {
+                        alert("You are up to date!");
+                    }
+                }, 2000);
+            }
+        }).catch(err => {
+            console.error("Update check failed:", err);
+            alert("Could not reach GitHub. Version remains locked.");
+        });
+    } else {
+        alert("Service Worker not active. Update check skipped.");
+    }
+};
