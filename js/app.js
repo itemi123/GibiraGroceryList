@@ -160,7 +160,7 @@ function renderActiveList() {
             <div class="d-flex align-items-center flex-grow-1">
                 <input type="checkbox" class="form-check-input me-3 border-success" 
                        ${item.done ? 'checked' : ''} onchange="toggleItem(${actualIndex})">
-                <span class="editable-text fs-5 ${item.done ? 'text-decoration-line-through text-muted' : ''}" 
+                <span class="editable-text fs-2 ${item.done ? 'text-decoration-line-through text-muted' : ''}" 
                       contenteditable="true" 
                       onblur="editItem(${actualIndex}, this.innerText)"
                       spellcheck="false">${item.name}</span>
