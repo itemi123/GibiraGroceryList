@@ -9,45 +9,60 @@
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="header-logo.png">
 </head>
-<body class="bg-light">
+<body class="m-0 p-0">
 
-    <div class="container py-4" style="max-width: 500px;">
-        <div class="card shadow-sm border-0 rounded-4">
-            <div class="card-body p-4 position-relative">
-                
-                <div class="position-absolute top-0 end-0 p-3 d-flex gap-2 align-items-center">
-					<button id="themeToggle" class="btn btn-sm btn-outline-secondary border-0 fw-bold" onclick="toggleTheme()">
-						<span id="themeIcon" class="icon-bulb"></span>
-					</button>
-					<button id="langToggle" class="btn btn-sm btn-outline-secondary border-0 fw-bold" onclick="changeLanguage()"></button>
-				</div>
-
-                <div class="text-center mb-4">
-                    <img src="header-logo.png" alt="Logo" class="mb-2" style="width: 120px; height: auto;">
-                </div>
-				
-				<div id="activeListHeader" class="text-center mb-3" style="display: none;">
-					<h2 id="activeListTitle" class="h4 fw-bold text-success mb-0"></h2>
-				</div>
-				
-                <div class="mb-3" style="display: none;">
-                    <input type="text" id="searchInput" class="form-control form-control border-success-subtle bg-light">
-                </div>
-
-                <div class="input-group input-group-lg mb-4" style="display: none;">
-                    <input type="text" id="groceryInput" class="form-control border-success-subtle" autocomplete="off">
-                    <button class="btn btn-success px-4 fw-bold" type="button" id="add-btn"></button>
-                </div>
-
-                <div id="mainList"></div>
-
-                <div class="d-grid mt-4 pt-3 border-top">
-                    <button class="btn btn-outline-danger btn-sm border-0" id="clearAll" style="display: none;"></button>
-					<button class="btn btn-outline-danger btn-sm border-0" id="clearAllLists" style="display: none;" onclick="deleteAllLists()"></button>
-                </div>
-
-            </div>
+    <div id="app-wrapper" class="p-3">
+		<div class="d-flex justify-content-end gap-2 mb-2">
+            <button id="themeToggle" class="btn btn-sm btn-outline-secondary border-0 fw-bold" onclick="toggleTheme()">
+                <span id="themeIcon" class="icon-bulb"></span>
+            </button>
+            <button id="langToggle" class="btn btn-sm btn-outline-secondary border-0 fw-bold" onclick="changeLanguage()"></button>
         </div>
+
+        <div class="text-center mb-4">
+            <img src="header-logo.png" alt="Logo" style="width: 120px; height: auto;">
+        </div>
+        
+        <div id="activeListHeader" class="text-center mb-3" style="display: none;">
+            <h2 id="activeListTitle" class="h4 fw-bold text-success mb-0"></h2>
+        </div>
+        
+        <div id="searchContainer" class="mb-3" style="display: none;">
+            <input type="text" id="searchInput" class="form-control border-success-subtle bg-light">
+        </div>
+
+        <div class="input-group input-group-lg mb-4" id="addItemContainer" style="display: none;">
+            <input type="text" id="groceryInput" class="form-control border-success-subtle" autocomplete="off">
+            <button class="btn btn-success px-4 fw-bold" type="button" id="add-btn"></button>
+        </div>
+
+        <div id="mainList"></div>
+
+        <div class="pinned-footer border-top">
+			<div class="text-center mb-2">
+				<button class="btn btn-outline-danger btn-sm border-0" id="clearAll" style="display: none;"></button>
+				<button class="btn btn-outline-danger btn-sm border-0" id="clearAllLists" style="display: none;" onclick="deleteAllLists()"></button>
+			</div>
+			
+			<div class="d-flex gap-2 justify-content-center pb-2">
+				<input type="file" id="importInput" style="display: none;" accept=".json" onchange="window.importData(event)">
+				<button class="btn btn-outline-success btn-sm border-0" onclick="window.exportData()">
+					📤 Export
+				</button>
+				<button class="btn btn-outline-info btn-sm border-0" onclick="document.getElementById('importInput').click()">
+					📥 Import
+				</button>
+			</div>
+			
+			<div class="text-center mt-3">
+				<button class="btn btn-link btn-sm text-muted text-decoration-none" 
+						style="font-size: 0.7rem; opacity: 0.6;" 
+						onclick="window.checkForUpdatesManually()">
+					<span id="version-display">v1.0.4</span> • Check for Updates
+				</button>
+			</div>
+			
+		</div>
 		
 		<div class="modal fade" id="nameModal" tabindex="-1" aria-hidden="true">
 		  <div class="modal-dialog modal-dialog-centered">
