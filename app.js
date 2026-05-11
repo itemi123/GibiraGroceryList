@@ -1,4 +1,4 @@
-/* app.js - Multi-List with Localization and Dark Mode */
+/* app.js */
 const listContainer = document.getElementById('mainList');
 const inputField = document.getElementById('groceryInput');
 const searchInput = document.getElementById('searchInput');
@@ -9,6 +9,15 @@ const themeToggleBtn = document.getElementById('themeToggle');
 const themeIcon = document.getElementById('themeIcon');
 const clearAllListsBtn = document.getElementById('clearAllLists');
 
+// --- Custom Modal Elements ---
+const nameModalEl = document.getElementById('nameModal');
+const nameModal = new bootstrap.Modal(nameModalEl);
+const modalInput = document.getElementById('modalInput');
+const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+const modalTitle = document.getElementById('modalTitle');
+
+let modalAction = null; // 'create' or 'edit'
+let editingListId = null;
 
 function updateThemeIcon() {
     if (currentTheme === 'light') {
@@ -24,13 +33,9 @@ function updateThemeIcon() {
 let currentLang = localStorage.getItem('gibira_lang') || (navigator.language.startsWith('bs') ? 'bs' : 'en');
 let i18n = translations[currentLang];
 
-// --- 1. Smart Theme Detection ---
 const getPreferredTheme = () => {
-    // 1. Check if user manually saved a preference before
     const saved = localStorage.getItem('gibira_theme');
     if (saved) return saved;
-
-    // 2. If not, check the phone system setting
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 };
 
@@ -50,7 +55,6 @@ window.toggleTheme = () => {
     updateThemeIcon();
 };
 
-
 // --- 2. State Management ---
 let allLists = JSON.parse(localStorage.getItem('gibira_all_lists')) || [];
 let currentListId = localStorage.getItem('gibira_current_id') || null;
@@ -65,7 +69,7 @@ function render() {
     inputField.placeholder = i18n.addItemPlaceholder;
     searchInput.placeholder = i18n.searchPlaceholder;
     clearAllBtn.innerText = i18n.clearAll;
-	clearAllListsBtn.innerText = i18n.deleteAllLists;
+    clearAllListsBtn.innerText = i18n.deleteAllLists;
     updateThemeIcon();
 
     if (!currentListId) {
@@ -81,11 +85,10 @@ function render() {
 
 // --- 4. View: Dashboard ---
 function renderDashboard() {
-   
+	document.getElementById('activeListHeader').style.display = 'none'; // Hide title
     document.querySelector('.input-group').style.display = 'none'; 
     if (searchInput) searchInput.parentElement.style.display = 'none'; 
     clearAllBtn.style.display = 'none';
-	// Show Delete All Lists button only if there are lists to delete
     clearAllListsBtn.style.display = allLists.length > 0 ? 'block' : 'none';
     langToggleBtn.style.visibility = 'visible';
     themeToggleBtn.style.visibility = 'visible';
@@ -93,7 +96,7 @@ function renderDashboard() {
     listContainer.innerHTML = `
         <h2 class="h5 fw-bold mb-3 text-secondary text-center">${i18n.myLists}</h2>
         <div class="d-grid gap-2 mb-4">
-            <button class="btn btn-success fw-bold p-3 rounded-3 shadow-sm" onclick="createNewList()">
+            <button class="btn btn-success fw-bold p-3 rounded-3 shadow-sm" onclick="window.showNamePrompt('create')">
                 ${i18n.createNewList}
             </button>
         </div>
@@ -105,8 +108,14 @@ function renderDashboard() {
         div.className = 'card mb-2 shadow-sm border-0 list-card';
         div.innerHTML = `
             <div class="card-body d-flex justify-content-between align-items-center" onclick="openList(${list.id})">
-                <div>
-                    <h5 class="mb-1">${list.title}</h5>
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center">
+                        <h5 class="mb-1">${list.title}</h5>
+                        <button class="btn btn-link btn-sm text-secondary p-0 ms-2 text-decoration-none" 
+                                onclick="window.showNamePrompt('edit', ${list.id}, '${list.title.replace(/'/g, "\\'")}'); event.stopPropagation();">
+                                ✏️
+                        </button>
+                    </div>
                     <div class="text-muted small">
                         <span class="me-2">📅 ${list.createdAt || i18n.na}</span>
                         <span>📦 ${list.items.length} ${i18n.itemsCount}</span>
@@ -123,6 +132,12 @@ function renderDashboard() {
 function renderActiveList() {
     const list = getCurrentList();
     if (!list) { goHome(); return; }
+	
+	// Show the header and set the text
+    const header = document.getElementById('activeListHeader');
+    const titleDisplay = document.getElementById('activeListTitle');
+    header.style.display = 'block';
+    titleDisplay.innerText = list.title;
 
     langToggleBtn.style.visibility = 'hidden';
     themeToggleBtn.style.visibility = 'hidden';
@@ -130,7 +145,7 @@ function renderActiveList() {
     document.querySelector('.input-group').style.display = 'flex';
     if (searchInput) searchInput.parentElement.style.display = 'block';
     clearAllBtn.style.display = 'block';
-	clearAllListsBtn.style.display = 'none';
+    clearAllListsBtn.style.display = 'none';
     const sortLabel = list.isReversed ? i18n.oldestTop : i18n.newestTop;
 
     listContainer.innerHTML = `
@@ -177,20 +192,42 @@ function renderActiveList() {
     });
 }
 
-// --- 6. Logic: List Operations ---
-window.createNewList = () => {
-    const name = prompt(i18n.promptListName);
-    if (!name || name.trim() === "") return;
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('de-DE') + ' ' + now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-    const newList = { id: Date.now(), title: name.trim(), items: [], createdAt: dateStr, isReversed: false };
-    allLists.push(newList);
-    currentListId = newList.id;
+// --- 6. Custom Modal Logic ---
+window.showNamePrompt = (action, id = null, oldName = '') => {
+    modalAction = action;
+    editingListId = id;
+    modalTitle.innerText = action === 'edit' ? i18n.editListName || "Edit List Name" : i18n.createNewList;
+    modalInput.value = oldName;
+    nameModal.show();
+    setTimeout(() => modalInput.focus(), 500);
+};
+
+modalConfirmBtn.onclick = () => {
+    const name = modalInput.value.trim();
+    if (!name) return;
+
+    if (modalAction === 'create') {
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('de-DE') + ' ' + now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+        const newList = { id: Date.now(), title: name, items: [], createdAt: dateStr, isReversed: false };
+        allLists.push(newList);
+        currentListId = newList.id;
+    } else if (modalAction === 'edit') {
+        const list = allLists.find(l => l.id == editingListId);
+        if (list) list.title = name;
+    }
+
+    nameModal.hide();
     render();
 };
 
+// --- 7. Logic: List Operations ---
 window.openList = (id) => { currentListId = id; render(); };
-window.goHome = () => { currentListId = null; if(searchInput) searchInput.value = ''; render(); };
+window.goHome = () => { 
+	currentListId = null; 
+	document.getElementById('activeListHeader').style.display = 'none';
+	if(searchInput) searchInput.value = ''; render(); 
+};
 
 window.deleteList = (e, id) => {
     e.stopPropagation(); 
@@ -206,7 +243,7 @@ window.toggleSort = () => {
     if (list) { list.isReversed = !list.isReversed; render(); }
 };
 
-// --- 7. Logic: Item Operations ---
+// --- 8. Logic: Item Operations ---
 window.addItem = () => {
     const text = inputField.value.trim();
     const list = getCurrentList();
@@ -249,7 +286,7 @@ window.deleteAllLists = () => {
     }
 };
 
-// --- 8. Drag and Drop Logic ---
+// --- 9. Drag and Drop Logic ---
 function handleDragStart(e) { draggedItemIndex = this.dataset.index; this.classList.add('dragging'); }
 function handleDragOver(e) { e.preventDefault(); }
 function handleDrop(e) {
@@ -263,7 +300,7 @@ function handleDrop(e) {
 }
 function handleDragEnd() { this.classList.remove('dragging'); draggedItemIndex = null; }
 
-// --- 9. Global Event Listeners ---
+// --- 10. Global Event Listeners ---
 addBtn.onclick = () => window.addItem();
 inputField.onkeypress = (e) => { if (e.key === 'Enter') window.addItem(); };
 
@@ -290,6 +327,7 @@ clearAllBtn.onclick = () => {
 };
 
 render();
+
 /* app.js registration */
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
