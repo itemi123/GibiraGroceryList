@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gibira-cache-v9.2';
+const CACHE_NAME = 'gibira-v1.0.5';
 
 const ASSETS = [
   '/GibiraGroceryList/',
