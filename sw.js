@@ -4,7 +4,7 @@ const ASSETS = [
   '/GibiraGroceryList/',
   '/GibiraGroceryList/index.html',
   '/GibiraGroceryList/css/style.css',
-  '/GibiraGroceryList/js/app.js',
+  '/GibiraGroceryList/app.js',
   '/GibiraGroceryList/translations.js',
   '/GibiraGroceryList/manifest.json',
   '/GibiraGroceryList/lightbulb.svg',
