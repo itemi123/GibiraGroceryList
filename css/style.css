@@ -1,8 +1,72 @@
-/* style.css */
-body {
-    background-color: #f8f9fa; /* Matches Bootstrap light bg */
-	-webkit-user-select: none; /* Safari */
-    user-select: none;         /* Standard */
+:root {
+    --bg-color: #f8f9fa;
+    --text-color: #212529;
+}
+
+[data-theme="dark"] {
+    --bg-color: #121212;
+    --text-color: #f8f9fa;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+}
+
+#app-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Use fixed height instead of min-height */
+    width: 100%;
+    overflow: hidden; /* Prevent the whole app from scrolling */
+    background-color: var(--bg-color);
+}
+
+
+#mainList {
+   flex: 1;
+    overflow-y: auto; /* This allows ONLY the list area to scroll */
+    padding-bottom: 20px;
+    /* Smooth scrolling for iOS */
+    -webkit-overflow-scrolling: touch;
+}
+
+.pinned-footer {
+    background-color: var(--bg-color);
+    padding: 1rem;
+    margin-top: auto; /* Pushes to the bottom */
+    z-index: 10;
+    /* Optional: add a slight shadow to make it look "above" the list */
+    box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
+}
+
+#clearAllLists {
+    margin-top: 2rem; /* Give it some distance from the functional buttons */
+    opacity: 0.8;
+}
+
+.list-title-wrapper {
+    line-height: 1.4;
+    word-break: break-word; /* Prevents long titles from overflowing */
+}
+
+.list-title-display {
+    display: inline; /* Key for allowing the pencil to follow the last word */
+    vertical-align: middle;
+}
+
+.edit-btn-inline {
+    display: inline-block;
+    vertical-align: middle;
+    text-decoration: none;
+    line-height: 1;
+}
+
+/* Ensure the card body aligns to the top so the delete 'X' doesn't move */
+.card-body.align-items-start {
+    align-items: flex-start !important;
 }
 
 /* Make checked items look clearly inactive */
@@ -112,12 +176,6 @@ body {
     color: var(--text-main) !important; 
 }
 
-/* Ensure inputs remain readable */
-input.form-control { 
-    background-color: var(--card-bg) !important; 
-    color: var(--text-main) !important; 
-    border-color: var(--border-color) !important; 
-}
 #themeToggle img {
     transition: transform 0.2s ease, filter 0.3s ease;
 }
@@ -171,4 +229,8 @@ input.form-control {
 /* Optional: Slight glow for the 'On' bulb in dark mode */
 [data-theme="dark"] .bulb-on {
     filter: drop-shadow(0 0 2px currentColor);
+}
+
+[data-theme="dark"] .pinned-footer {
+    box-shadow: 0 -5px 15px rgba(0,0,0,0.3);
 }
