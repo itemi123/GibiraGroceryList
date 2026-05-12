@@ -347,6 +347,10 @@ clearAllBtn.onclick = () => {
 
 window.exportData = () => {
     // 1. Prepare the data
+	if (!allLists || allLists.length === 0) {
+        alert("There are no lists to export!"); 
+        return;
+    }
     const dataStr = JSON.stringify(allLists, null, 2);
     const blob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(blob);
